@@ -1,0 +1,79 @@
+## Practical Machine Learning Course Project
+
+####1. Loading required packages
+```{r message=FALSE, warning=FALSE}
+library(caret)
+```
+
+
+####2. Reading the data in
+After looking at the data it became apparent that a number of columns had either mostly missing data or mostly NAs. They were removed from the dataset. The other columns that were removed: the column with users names, all timestamps and columns with window data as I believe that those columns add no value in predicting the "classe". The removal of the columns was done as a separate exercise and is not shown here.
+```{r}
+set.seed(123)
+df=read.csv("Training.csv", header=T)
+```
+Here are the columns that will be used to train the model:
+```{r}
+colnames(df)
+```
+
+####3. Preprocessing
+Check for predictors with near zero variance - they do not add value to the model and should be removed if found
+```{r}
+nzv=nearZeroVar(df)
+length(nzv)
+```
+Looks like no predictors with near zero variance is found   
+
+Check for correlated predictors with correlation above 75% - keeping them in the model increases variance
+```{r}
+df_cor=cor(df[,-53])
+cor_pred=findCorrelation(df_cor, cutoff = .75)
+# Lets see which columns should be removed:
+cor_pred
+```
+We will remove the correlated predictors so they are not included in the model 
+```{r}
+df=df[,-cor_pred]
+```
+We will be using `r ncol(df)-1` predictors to train the model.   
+
+####4. Creating training and test sets with 75%/25% split
+Lets check the frequency of the predicted variable "classe" in each of the 5 classes
+```{r}
+table(df$classe)
+```
+It appears that with the exception of the Class __A__ the frequency is balanced.
+Caret's `createDataPartition` function will ensure that a similar frequency is preserved in both the training and the test sets.
+```{r}
+trainIndex=createDataPartition(df$classe, p = .75, list = FALSE,times = 1)
+train_set=df[trainIndex,]
+test_set=df[-trainIndex,]
+```
+
+####5. Model Training - Using Random Forest Method
+Random Forrest models historically have high performance ratings. So this is the one I'll be using for this project. I have also tried Boosting and k-Nearest Neighbor methods, but they both appeared to have lower Accuracy rate than the Random Forest method. 
+The default __Cross Validation__ method used by train function is `bootstrap`. However, for the Random Forest algorithm the best cross-validation mehtod is __OOB__ which stands for Out of Bag and this is the one we will use.
+The only tuning parameter that can be used with the Random Forrest `rf` algorithm is __mtry__ which indicates howm many predictors are randomly selected for each split. The default value for it is 2, we will ask the train function to try 5 different values of this parameter to find the fit with the best Accuracy rate.   
+```{r warning=FALSE, error=FALSE, message=FALSE, cache=FALSE}
+ctrl = trainControl(method="oob")
+rfFit=train(classe~., data=df, method="rf", trControl=ctrl, tuneLength=5)
+```
+
+####6. Checking the Accuracy of the Model's Fit
+```{r}
+print(rfFit)
+```
+Looks like the __mtry__ value of __9__ has the highest Accuracy rate.
+
+```{r}
+print(rfFit$finalModel)
+```
+We can see that the model that was selected as the __Final Model__ was the one with the __mtry__ value equal __9__.
+
+####7. Out-of-Sample Error Rate - Checking Model's Performance on the Test Data
+```{r message=FALSE}
+predicted=predict(rfFit, newdata=test_set)
+confusionMatrix(predicted, test_set$classe)
+```
+It appears that the model's estimated out of sample performance if 100% which is, of course, is overly optimistic, and most likely is obtained by chance. The output of the Final Model above actually shows that out of bag (OOB) estimate error rate is 0.44%. This should be a more realistic estimate of __Out-of-Sample__ error rate.
