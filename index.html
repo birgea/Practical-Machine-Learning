@@ -60,7 +60,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 </div>
 <div id="reading-the-data-in" class="section level4">
 <h4>2. Reading the data in</h4>
-<p>After looking at the data it became apparent that a number of columns had either mostly missing data or mostly NAs. They were removed from the dataset. The other columns that were removed: the column with users names, all timestamps and columns with window data as I believe that those columns add no value in predicting the âclasseâ. The removal of the columns was done as a separate exercise and is not shown here.</p>
+<p>After looking at the data it became apparent that a number of columns had either mostly missing data or mostly NAs. They were removed from the dataset. The other columns that were removed: the column with users names, all timestamps and columns with window data as I believe that those columns add no value in predicting the “classe”. The removal of the columns was done as a separate exercise and is not shown here.</p>
 <pre class="r"><code>set.seed(123)
 df=read.csv(&quot;Training.csv&quot;, header=T)</code></pre>
 <p>Here are the columns that will be used to train the model:</p>
@@ -103,24 +103,24 @@ cor_pred</code></pre>
 </div>
 <div id="creating-training-and-test-sets-with-7525-split" class="section level4">
 <h4>4. Creating training and test sets with 75%/25% split</h4>
-<p>Lets check the frequency of the predicted variable âclasseâ in each of the 5 classes</p>
+<p>Lets check the frequency of the predicted variable “classe” in each of the 5 classes</p>
 <pre class="r"><code>table(df$classe)</code></pre>
 <pre><code>## 
 ##    A    B    C    D    E 
 ## 5580 3797 3422 3216 3607</code></pre>
-<p>It appears that with the exception of the Class <strong>A</strong> the frequency is balanced. Caretâs <code>createDataPartition</code> function will ensure that a similar frequency is preserved in both the training and the test sets.</p>
+<p>It appears that with the exception of the Class <strong>A</strong> the frequency is balanced. Caret’s <code>createDataPartition</code> function will ensure that a similar frequency is preserved in both the training and the test sets.</p>
 <pre class="r"><code>trainIndex=createDataPartition(df$classe, p = .75, list = FALSE,times = 1)
 train_set=df[trainIndex,]
 test_set=df[-trainIndex,]</code></pre>
 </div>
 <div id="model-training---using-random-forest-method" class="section level4">
 <h4>5. Model Training - Using Random Forest Method</h4>
-<p>Random Forrest models historically have high performance ratings. So this is the one Iâll be using for this project. I have also tried Boosting and k-Nearest Neighbor methods, but they both appeared to have lower Accuracy rate than the Random Forest method. The default <strong>Cross Validation</strong> method used by train function is <code>bootstrap</code>. However, for the Random Forest algorithm the best cross-validation mehtod is <strong>OOB</strong> which stands for Out of Bag and this is the one we will use. The only tuning parameter that can be used with the Random Forrest <code>rf</code> algorithm is <strong>mtry</strong> which indicates howm many predictors are randomly selected for each split. The default value for it is 2, we will ask the train function to try 5 different values of this parameter to find the fit with the best Accuracy rate.</p>
+<p>Random Forrest models historically have high performance ratings. So this is the one I’ll be using for this project. I have also tried Boosting and k-Nearest Neighbor methods, but they both appeared to have lower Accuracy rate than the Random Forest method. The default <strong>Cross Validation</strong> method used by train function is <code>bootstrap</code>. However, for the Random Forest algorithm the best cross-validation mehtod is <strong>OOB</strong> which stands for Out of Bag and this is the one we will use. The only tuning parameter that can be used with the Random Forrest <code>rf</code> algorithm is <strong>mtry</strong> which indicates howm many predictors are randomly selected for each split. The default value for it is 2, we will ask the train function to try 5 different values of this parameter to find the fit with the best Accuracy rate.</p>
 <pre class="r"><code>ctrl = trainControl(method=&quot;oob&quot;)
 rfFit=train(classe~., data=df, method=&quot;rf&quot;, trControl=ctrl, tuneLength=5)</code></pre>
 </div>
 <div id="checking-the-accuracy-of-the-models-fit" class="section level4">
-<h4>6. Checking the Accuracy of the Modelâs Fit</h4>
+<h4>6. Checking the Accuracy of the Model’s Fit</h4>
 <pre class="r"><code>print(rfFit)</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -160,7 +160,7 @@ rfFit=train(classe~., data=df, method=&quot;rf&quot;, trControl=ctrl, tuneLength
 <p>We can see that the model that was selected as the <strong>Final Model</strong> was the one with the <strong>mtry</strong> value equal <strong>9</strong>.</p>
 </div>
 <div id="out-of-sample-error-rate---checking-models-performance-on-the-test-data" class="section level4">
-<h4>7. Out-of-Sample Error Rate - Checking Modelâs Performance on the Test Data</h4>
+<h4>7. Out-of-Sample Error Rate - Checking Model’s Performance on the Test Data</h4>
 <pre class="r"><code>predicted=predict(rfFit, newdata=test_set)
 confusionMatrix(predicted, test_set$classe)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
@@ -194,7 +194,7 @@ confusionMatrix(predicted, test_set$classe)</code></pre>
 ## Detection Rate          0.284    0.194    0.174    0.164    0.184
 ## Detection Prevalence    0.284    0.194    0.174    0.164    0.184
 ## Balanced Accuracy       1.000    1.000    1.000    1.000    1.000</code></pre>
-<p>It appears that the modelâs estimated out of sample performance if 100% which is, of course, is overly optimistic, and most likely is obtained by chance. The output of the Final Model above actually shows that out of bag (OOB) estimate error rate is 0.44%. This should be a more realistic estimate of <strong>Out-of-Sample</strong> error rate.</p>
+<p>It appears that the model’s estimated out of sample performance if 100% which is, of course, is overly optimistic, and most likely is obtained by chance. The output of the Final Model above actually shows that out of bag (OOB) estimate error rate is 0.44%. This should be a more realistic estimate of <strong>Out-of-Sample</strong> error rate.</p>
 </div>
 </div>
 
